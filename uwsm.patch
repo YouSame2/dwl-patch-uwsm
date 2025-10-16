@@ -9,8 +9,8 @@ and finalize the session without manual intervention.
 
 The export happens asynchronously via fork() to avoid blocking dwl startup.
 ---
- dwl.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ dwl.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
 diff --git a/dwl.c b/dwl.c
 index 5867b1e..9c8e0f4 100644
@@ -73,18 +73,17 @@ index 5867b1e..9c8e0f4 100644
  void
  focusclient(Client *c, int lift)
  {
-@@ -2244,6 +2277,10 @@ run(char *startup_cmd)
+@@ -2244,6 +2285,9 @@ run(char *startup_cmd)
  		die("startup: display_add_socket_auto");
  	setenv("WAYLAND_DISPLAY", socket, 1);
  
 +	/* Export WAYLAND_DISPLAY to systemd/D-Bus for session managers like uwsm */
 +	exportenv("WAYLAND_DISPLAY");
 +
-+
  	/* Start the backend. This will enumerate outputs and inputs, become the DRM
  	 * master, etc */
  	if (!wlr_backend_start(backend))
-@@ -2659,6 +2696,9 @@ setup(void)
+@@ -2659,6 +2704,9 @@ setup(void)
  		wl_signal_add(&xwayland->events.new_surface, &new_xwayland_surface);
  
  		setenv("DISPLAY", xwayland->display_name, 1);
