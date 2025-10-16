@@ -1,22 +1,8 @@
-From: dwl patch <dwl@localhost>
-Date: Tue, 15 Oct 2025 00:00:00 +0000
-Subject: [PATCH] Add automatic systemd environment export for uwsm compatibility
-
-Export WAYLAND_DISPLAY and DISPLAY (when XWayland is enabled) to systemd
-and D-Bus user environments automatically on startup. This allows uwsm
-(Universal Wayland Session Manager) to properly detect compositor readiness
-and finalize the session without manual intervention.
-
-The export happens asynchronously via fork() to avoid blocking dwl startup.
----
- dwl.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
-
 diff --git a/dwl.c b/dwl.c
-index 5867b1e..9c8e0f4 100644
+index 12f441e..788f55f 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -284,6 +284,7 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
+@@ -282,6 +282,7 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
  static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroykeyboardgroup(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
@@ -24,7 +10,7 @@ index 5867b1e..9c8e0f4 100644
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
-@@ -930,6 +931,47 @@ createidleinhibitor(struct wl_listener *listener, void *data)
+@@ -937,6 +938,48 @@ createidleinhibitor(struct wl_listener *listener, void *data)
  	checkidleinhibitor(NULL);
  }
  
@@ -73,7 +59,7 @@ index 5867b1e..9c8e0f4 100644
  void
  createkeyboard(struct wlr_keyboard *keyboard)
  {
-@@ -2244,6 +2286,9 @@ run(char *startup_cmd)
+@@ -2243,6 +2286,9 @@ run(char *startup_cmd)
  		die("startup: display_add_socket_auto");
  	setenv("WAYLAND_DISPLAY", socket, 1);
  
@@ -83,7 +69,7 @@ index 5867b1e..9c8e0f4 100644
  	/* Start the backend. This will enumerate outputs and inputs, become the DRM
  	 * master, etc */
  	if (!wlr_backend_start(backend))
-@@ -2651,6 +2696,9 @@ setup(void)
+@@ -2659,6 +2705,9 @@ setup(void)
  		wl_signal_add(&xwayland->events.new_surface, &new_xwayland_surface);
  
  		setenv("DISPLAY", xwayland->display_name, 1);
@@ -93,5 +79,3 @@ index 5867b1e..9c8e0f4 100644
  	} else {
  		fprintf(stderr, "failed to setup XWayland X server, continuing without it\n");
  	}
--- 
-2.45.2
